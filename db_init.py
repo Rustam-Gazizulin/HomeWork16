@@ -1,5 +1,5 @@
 from app import db
-from models import User, Order, Offer
+from app import User, Order, Offer
 import data
 import datetime
 
@@ -33,7 +33,7 @@ for order in data.ORDERS:
         name=order["name"],
         description=order["description"],
         start_date=data_time_obj_start.date(),
-        end_date=data_time_obj_end,
+        end_date=data_time_obj_end.date(),
         address=order["address"],
         price=order["price"],
         customer_id=order["customer_id"],
