@@ -15,6 +15,20 @@ class User(db.Model):
     role = db.Column(db.String(100))
     phone = db.Column(db.String(100))
 
+    def create_dict(self):
+
+        """Вспомогательный метод для конвертации полученных данных в словарь"""
+
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "age": self.age,
+            "email": self.email,
+            "role": self.role,
+            "phone": self.phone
+        }
+
 
 class Order(db.Model):
     """Модель Order описывает данные о заказе полученные из массива
