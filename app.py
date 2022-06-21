@@ -51,7 +51,7 @@ class Offer(db.Model):
 
     __tablename__ = "offers"
 
-    idm = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
     executor_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
@@ -95,4 +95,16 @@ for order in data.ORDERS:
     ))
 
     db.session.commit()
-    db.session.close()
+
+for offer in data.OFFERS:
+
+    """Добавление данных в модель Offer"""
+
+    db.session.add(Offer(
+        id=offer["id"],
+        order_id=offer["order_id"],
+        executor_id=offer["executor_id"]
+    ))
+
+    db.session.commit()
+
