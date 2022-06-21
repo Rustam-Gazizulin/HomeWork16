@@ -1,7 +1,8 @@
-import data
-import datetime
 from app import db
 from models import User, Order, Offer
+import data
+import datetime
+
 
 db.drop_all()
 db.create_all()
