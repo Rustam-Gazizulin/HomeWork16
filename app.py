@@ -14,6 +14,9 @@ db = SQLAlchemy(app)
 
 
 class User(db.Model):
+    """Модель User описывает данные о пользователе полученные из массива
+     данных JSON в файле data, которые будут храниться в таблице"""
+
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,13 +29,16 @@ class User(db.Model):
 
 
 class Order(db.Model):
+    """Модель Order описывает данные о заказе полученные из массива
+    данных JSON в файле data, которые будут храниться в таблице"""
+
     __tablename__ = "orders"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     description = db.Column(db.Text)
-    start_data = db.Column(db.Date)
-    end_data = db.Column(db.Date)
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
     address = db.Column(db.String(100))
     price = db.Column(db.Float)
     customer_id = db.Column(db.Integer, db.ForeignKey("users.id"))
@@ -40,9 +46,12 @@ class Order(db.Model):
 
 
 class Offer(db.Model):
+    """Модель Offer описывает данные о пользователях и принятых заказов, полученные из массива
+    данных JSON в файле data, которые будут храниться в таблице"""
+
     __tablename__ = "offers"
 
-    id = db.Column(db.Integer, primary_key=True)
+    idm = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
     executor_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
@@ -51,6 +60,8 @@ db.drop_all()
 db.create_all()
 
 for user in data.USERS:
+    """Добавление данных в модель User"""
+
     db.session.add(User(
         id=user["id"],
         first_name=user["first_name"],
@@ -60,5 +71,28 @@ for user in data.USERS:
         role=user["role"],
         phone=user["phone"]
     ))
+
+    db.session.commit()
+
+
+for order in data.ORDERS:
+
+    """Добавление данных в модель Order"""
+
+    data_time_obj_start = datetime.datetime.strptime(order["start_date"], '%m/%d/%Y')  # Конвертируем строку
+    data_time_obj_end = datetime.datetime.strptime(order["end_date"], '%m/%d/%Y')  # в формат date
+
+    db.session.add(Order(
+        id=order["id"],
+        name=order["name"],
+        description=order["description"],
+        start_date=data_time_obj_start.date(),
+        end_date=data_time_obj_end,
+        address=order["address"],
+        price=order["price"],
+        customer_id=order["customer_id"],
+        executor_id=order["executor_id"]
+    ))
+
     db.session.commit()
     db.session.close()
