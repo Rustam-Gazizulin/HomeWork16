@@ -1,5 +1,6 @@
+import json
+import datetime
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -96,6 +97,23 @@ def get_users():
 
     if request.method == 'GET':
         return jsonify([user.create_dict() for user in User.query.all()])
+    if request.method == 'POST':
+        try:
+            user = json.loads(request.data)
+            new_user_obj = User(
+                id=user['id'],
+                first_name=user['first_name'],
+                last_name=user['last_name'],
+                age=user['age'],
+                email=user['email'],
+                role=user['role'],
+                phone=user['phone']
+            )
+        except Exception as e:
+            return e
+        db.session.add(new_user_obj)
+        db.session.commit()
+        return 'Пользователь создан и добавлен в базу данных', 200
 
 
 @app.route("/users/<int:qid>", methods=['GET', 'PUT', 'DELETE'])
@@ -114,6 +132,19 @@ def get_offers():
 
     if request.method == 'GET':
         return jsonify([offer.create_dict() for offer in Offer.query.all()])
+    if request.method == 'POST':
+        try:
+            offer = json.loads(request.data)
+            new_offer_obj = Offer(
+                id=offer['id'],
+                order_id=offer['order_id'],
+                executor_id=offer['executor_id']
+            )
+        except Exception as e:
+            return e
+        db.session.add(new_offer_obj)
+        db.session.commit()
+        return 'Оффер создан и добавлен в базу данных', 200
 
 
 @app.route("/offers/<int:qid>", methods=['GET', 'PUT', 'DELETE'])
@@ -132,6 +163,30 @@ def get_orders():
 
     if request.method == 'GET':
         return jsonify([order.create_dict() for order in Order.query.all()])
+    if request.method == 'POST':
+        try:
+            order = json.loads(request.data)
+            month_start, day_start, year_start = [int(i) for i in order['start_date'].split("/")]  # Конвертируем строку
+            month_end, day_end, year_end = [int(i) for i in order['start_date'].split("/")]  # Конвертируем строку
+
+            new_order_obj = Order(
+                id=order["id"],
+                name=order["name"],
+                description=order["description"],
+                start_date=datetime.date(year=year_start, month=month_start, day=day_start),
+                end_date=datetime.date(year=year_end, month=month_end, day=day_end),
+                address=order["address"],
+                price=order["price"],
+                customer_id=order["customer_id"],
+                executor_id=order["executor_id"]
+            )
+            db.session.add(new_order_obj)
+            db.session.commit()
+            db.session.close()
+            return 'Ордер создан и добавлен в базу данных', 200
+        except Exception as e:
+            return e
+
 
 
 @app.route("/orders/<int:qid>", methods=['GET', 'PUT', 'DELETE'])
