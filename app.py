@@ -113,6 +113,7 @@ def get_users():
             return e
         db.session.add(new_user_obj)
         db.session.commit()
+        db.session.close()
         return 'Пользователь создан и добавлен в базу данных', 200
 
 
@@ -120,10 +121,37 @@ def get_users():
 def get_user_qid(qid: int):
     """Получение одного пользователя по идентификатору /users/1."""
 
-    user_qid = User.query.get(qid)
-    if user_qid is None:
-        return 'User not found'
-    return jsonify(User.create_dict(user_qid))
+    if request.method == 'GET':
+        user_qid = User.query.get(qid)
+        if user_qid is None:
+            return 'User not found', 404
+        return jsonify(User.create_dict(user_qid))
+    elif request.method == 'PUT':
+        user_data = json.loads(request.data)
+        user_qid = User.query.get(qid)
+        if user_qid is None:
+            return 'User not found', 404
+        user_qid.first_name = user_data['first_name']
+        user_qid.last_name = user_data['last_name']
+        user_qid.age = user_data['age']
+        user_qid.email = user_data['email']
+        user_qid.role = user_data['role']
+        user_qid.phone = user_data['phone']
+
+        db.session.add(user_qid)
+        db.session.commit()
+        db.session.close()
+        return f'Данные пользователя с id {qid} изменены', 200
+
+    elif request.method == 'DELETE':
+        user_qid = User.query.get(qid)
+        if user_qid is None:
+            return 'User not found', 404
+        db.session.delete(user_qid)
+        db.session.commit()
+        db.session.close()
+
+        return f'Данные пользователя с id {qid} удалены', 200
 
 
 @app.route("/offers", methods=['GET', 'POST'])
@@ -144,17 +172,42 @@ def get_offers():
             return e
         db.session.add(new_offer_obj)
         db.session.commit()
+        db.session.close()
         return 'Оффер создан и добавлен в базу данных', 200
 
 
 @app.route("/offers/<int:qid>", methods=['GET', 'PUT', 'DELETE'])
 def get_offer_qid(qid: int):
     """Получение одного offer по идентификатору /offers/qid."""
+    if request.method == 'GET':
+        offer_qid = Offer.query.get(qid)
+        if offer_qid is None:
+            return 'Offer not found'
+        return jsonify(Offer.create_dict(offer_qid))
 
-    offer_qid = Offer.query.get(qid)
-    if offer_qid is None:
-        return 'Offer not found'
-    return jsonify(Offer.create_dict(offer_qid))
+    elif request.method == 'PUT':
+        offer_data = json.loads(request.data)
+        offer_qid = Offer.query.get(qid)
+        if offer_qid is None:
+            return 'Offer not found', 404
+        offer_qid.id = offer_data['id']
+        offer_qid.order_id = offer_data['order_id']
+        offer_qid.executor_id = offer_data['executor_id']
+
+        db.session.add(offer_qid)
+        db.session.commit()
+        db.session.close()
+        return f'Данные офера с id {qid} изменены', 200
+
+    elif request.method == 'DELETE':
+        offer_qid = Offer.query.get(qid)
+        if offer_qid is None:
+            return 'User not found', 404
+        db.session.delete(offer_qid)
+        db.session.commit()
+        db.session.close()
+
+        return f'Данные офера с id {qid} удалены', 200
 
 
 @app.route("/orders", methods=['GET', 'POST'])
@@ -186,7 +239,6 @@ def get_orders():
             return 'Ордер создан и добавлен в базу данных', 200
         except Exception as e:
             return e
-
 
 
 @app.route("/orders/<int:qid>", methods=['GET', 'PUT', 'DELETE'])
