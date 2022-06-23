@@ -245,10 +245,45 @@ def get_orders():
 def get_order_qid(qid: int):
     """Получение одного order по идентификатору /orders/qid."""
 
-    order_qid = Order.query.get(qid)
-    if order_qid is None:
-        return 'Order not found'
-    return jsonify(Order.create_dict(order_qid))
+    if request.method == 'GET':
+        order_qid = Order.query.get(qid)
+        if order_qid is None:
+            return 'Order not found'
+        return jsonify(Order.create_dict(order_qid))
+
+    elif request.method == 'PUT':
+        order_data = json.loads(request.data)
+
+        month_start, day_start, year_start = [int(i) for i in order_data['start_date'].split("/")]
+        month_end, day_end, year_end = [int(i) for i in order_data['end_date'].split("/")]  # Конвертируем строку
+
+        order_qid = Order.query.get(qid)
+        if order_qid is None:
+            return 'Order not found', 404
+        order_qid.id = order_data['id']
+        order_qid.name = order_data['name']
+        order_qid.description = order_data['description']
+        order_qid.start_date = datetime.date(year=year_start, month=month_start, day=day_start)
+        order_qid.end_date = datetime.date(year=year_end, month=month_end, day=day_end)
+        order_qid.address = order_data['address']
+        order_qid.price = order_data['price']
+        order_qid.customer_id = order_data['customer_id']
+        order_qid.executor_id = order_data['executor_id']
+
+        db.session.add(order_qid)
+        db.session.commit()
+        db.session.close()
+        return f'Данные заказа с id {qid} изменены', 200
+
+    elif request.method == 'DELETE':
+        order_qid = Order.query.get(qid)
+        if order_qid is None:
+            return 'User not found', 404
+        db.session.delete(order_qid)
+        db.session.commit()
+        db.session.close()
+
+        return f'Данные заказа с id {qid} удалены', 200
 
 
 if __name__ == '__main__':
